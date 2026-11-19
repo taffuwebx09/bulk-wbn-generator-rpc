@@ -1,1 +1,1 @@
-Retry publish after rebuild of generated download ZIPs from trusted source folders.
+Publish full project after Node dependency install, package generation, tests and Vite build; exclude optional CI workflow because GitHub App has no workflows permission.
