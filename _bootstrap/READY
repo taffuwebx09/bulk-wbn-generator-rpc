@@ -1,1 +1,1 @@
-Run v1.4.0 complete source publish workflow after all archive chunks are present. Unpack, install, test, build, then publish root source.
+Retry v1.4.0 source publish using Python zipfile central-directory validation, then install, test, build and publish the root project.
