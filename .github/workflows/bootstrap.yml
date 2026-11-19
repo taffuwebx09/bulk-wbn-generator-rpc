@@ -14,29 +14,47 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - name: Decode and unpack complete source archive
+      - name: Decode and safely unpack complete source archive
         shell: bash
         run: |
           set -euo pipefail
           cat _bootstrap/source-*.b64 | base64 --decode > /tmp/bulk-wbn-source.zip
           python3 - <<'PY'
-          import zipfile
+          import pathlib, zipfile
+          from zipfile import BadZipFile
           archive = "/tmp/bulk-wbn-source.zip"
+          destination = pathlib.Path("/tmp/bulk-wbn-source")
+          destination.mkdir(parents=True, exist_ok=True)
+          required = {
+              "package.json",
+              "client/src/App.jsx",
+              "server/src/index.js",
+              "extension/manifest.json",
+          }
+          seen = set()
           with zipfile.ZipFile(archive) as z:
-              bad = z.testzip()
-              if bad:
-                  raise SystemExit(f"Corrupt ZIP member: {bad}")
-              names = set(z.namelist())
-              required = [
-                  "package.json",
-                  "client/src/App.jsx",
-                  "server/src/index.js",
-                  "extension/manifest.json",
-              ]
-              missing = [name for name in required if name not in names]
-              if missing:
-                  raise SystemExit(f"Archive missing required files: {missing}")
-              z.extractall("/tmp/bulk-wbn-source")
+              for info in z.infolist():
+                  name = info.filename
+                  rel = pathlib.PurePosixPath(name)
+                  if rel.is_absolute() or ".." in rel.parts:
+                      raise SystemExit(f"Unsafe archive path: {name}")
+                  if info.is_dir():
+                      (destination / pathlib.Path(*rel.parts)).mkdir(parents=True, exist_ok=True)
+                      continue
+                  try:
+                      payload = z.read(info)
+                  except BadZipFile:
+                      if name.startswith("public/downloads/") and name.endswith(".zip"):
+                          print(f"Will regenerate damaged downloadable asset: {name}")
+                          continue
+                      raise
+                  seen.add(name)
+                  target = destination / pathlib.Path(*rel.parts)
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  target.write_bytes(payload)
+          missing = required - seen
+          if missing:
+              raise SystemExit(f"Archive missing required files: {sorted(missing)}")
           PY
           rsync -a --exclude='.git/' /tmp/bulk-wbn-source/ ./
           rm -rf _bootstrap
@@ -46,6 +64,8 @@ jobs:
           node-version: 20
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Rebuild Extension and Local Processor download ZIPs
+        run: npm run package:downloads
       - name: Run automated backend tests
         run: npm test
       - name: Build frontend
