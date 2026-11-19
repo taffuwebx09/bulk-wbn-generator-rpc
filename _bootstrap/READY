@@ -1,1 +1,1 @@
-Unpack the staged v1.4.0 archive, run npm install, npm test and npm run build, then publish the full source tree to the main branch.
+Run v1.4.0 complete source publish workflow after all archive chunks are present. Unpack, install, test, build, then publish root source.
