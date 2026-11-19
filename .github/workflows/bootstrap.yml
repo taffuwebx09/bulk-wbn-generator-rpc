@@ -19,13 +19,25 @@ jobs:
         run: |
           set -euo pipefail
           cat _bootstrap/source-*.b64 | base64 --decode > /tmp/bulk-wbn-source.zip
-          unzip -t /tmp/bulk-wbn-source.zip
-          mkdir -p /tmp/bulk-wbn-source
-          unzip -q /tmp/bulk-wbn-source.zip -d /tmp/bulk-wbn-source
-          test -f /tmp/bulk-wbn-source/package.json
-          test -f /tmp/bulk-wbn-source/client/src/App.jsx
-          test -f /tmp/bulk-wbn-source/server/src/index.js
-          test -f /tmp/bulk-wbn-source/extension/manifest.json
+          python3 - <<'PY'
+          import zipfile
+          archive = "/tmp/bulk-wbn-source.zip"
+          with zipfile.ZipFile(archive) as z:
+              bad = z.testzip()
+              if bad:
+                  raise SystemExit(f"Corrupt ZIP member: {bad}")
+              names = set(z.namelist())
+              required = [
+                  "package.json",
+                  "client/src/App.jsx",
+                  "server/src/index.js",
+                  "extension/manifest.json",
+              ]
+              missing = [name for name in required if name not in names]
+              if missing:
+                  raise SystemExit(f"Archive missing required files: {missing}")
+              z.extractall("/tmp/bulk-wbn-source")
+          PY
           rsync -a --exclude='.git/' /tmp/bulk-wbn-source/ ./
           rm -rf _bootstrap
           rm -f .github/workflows/bootstrap.yml
