@@ -1,0 +1,6 @@
+server/data
+server/downloads
+local-processor
+scripts
+.github
+*.log

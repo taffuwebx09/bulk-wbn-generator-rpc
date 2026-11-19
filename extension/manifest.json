@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Bulk WBN RPC Connector",
+  "version": "1.4.0",
+  "description": "Secure paired connector for the Vercel dashboard and local Windows processor; uses the authenticated Delhivery RPC Chrome session.",
+  "permissions": [
+    "storage",
+    "cookies",
+    "downloads",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://hq.delhivery.com/*",
+    "https://*.delhivery.com/*",
+    "https://*.amazonaws.com/*",
+    "http://localhost:4000/*",
+    "http://127.0.0.1:4000/*",
+    "https://bulk-wbn-generator-rpc.vercel.app/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:5173/*",
+        "http://127.0.0.1:5173/*",
+        "http://192.168.1.2:5173/*",
+        "http://10.129.158.140:5173/*",
+        "https://bulk-wbn-generator-rpc.vercel.app/*"
+      ],
+      "js": [
+        "bridge.js"
+      ],
+      "run_at": "document_start"
+    }
+  ],
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Bulk WBN RPC Connector",
+    "default_popup": "popup.html"
+  }
+}

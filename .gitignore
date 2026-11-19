@@ -1,0 +1,10 @@
+node_modules/
+client/dist/
+server/data/
+server/downloads/
+local-processor/server/data/
+local-processor/server/downloads/
+local-processor/server/node_modules/
+.env
+*.log
+.DS_Store
