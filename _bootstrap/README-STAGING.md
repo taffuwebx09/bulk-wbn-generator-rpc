@@ -1,0 +1,1 @@
+Staged archive parts are temporary bootstrap content. The unpack workflow removes this folder after successful validation. Do not deploy this staging tree as the application.
