@@ -1,1 +1,1 @@
-Retry v1.4.0 source publish using Python zipfile central-directory validation, then install, test, build and publish the root project.
+Retry publish after rebuild of generated download ZIPs from trusted source folders.
